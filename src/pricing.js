@@ -65,18 +65,25 @@ class PricingPolicy {
 class ProductVariantPrice {
   constructor(grossCostPrice, pricingPolicy) {
     this.pricingPolicy = pricingPolicy || new PricingPolicy();
-    this.grossCostPrice = new MoneyAmount(grossCostPrice);
+    this._grossCostPrice = new MoneyAmount(grossCostPrice);
+  }
+
+  get grossCostPrice() {
+    return this._grossCostPrice
+  }
+  set grossCostPrice(amount) {
+    this._grossCostPrice = new MoneyAmount(amount)
   }
 
   // Producer prices
   get producerIncomeInclVat() {
     return new MoneyAmount(
-      this.grossCostPrice * this.pricingPolicy.producerIncomeRate
+      this._grossCostPrice * this.pricingPolicy.producerIncomeRate
     );
   }
   set producerIncomeInclVat(amount) {
     const newAmount = amount / this.pricingPolicy.producerIncomeRate;
-    this.grossCostPrice.amount = newAmount;
+    this._grossCostPrice.amount = newAmount;
     return newAmount;
   }
 
@@ -90,28 +97,28 @@ class ProductVariantPrice {
   // Budzonnery
   get budzonneryIncomeInclVat() {
     return new MoneyAmount(
-      this.grossCostPrice * this.pricingPolicy.budzonneryIncomeRate
+      this._grossCostPrice * this.pricingPolicy.budzonneryIncomeRate
     )
   }
   
   // Rex
   get rexIncomeInclVat() {
     return new MoneyAmount(
-      this.grossCostPrice * this.pricingPolicy.rexIncomeRate
+      this._grossCostPrice * this.pricingPolicy.rexIncomeRate
     )
   }
 
   // Manager
   get managerIncomeInclVat() {
     return new MoneyAmount(
-      this.grossCostPrice * this.pricingPolicy.managerIncomeRate
+      this._grossCostPrice * this.pricingPolicy.managerIncomeRate
     )
   }
 
   // Softozor
   get softozorIncomeInclVat() {
     return new MoneyAmount(
-      this.grossCostPrice * this.pricingPolicy.softozorIncomeRate
+      this._grossCostPrice * this.pricingPolicy.softozorIncomeRate
     )
   }
 }
