@@ -1,0 +1,23 @@
+{
+  "name": "pricing-service",
+  "version": "1.0.0",
+  "description": "Pricing service for the shopozor",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "testWatch": "jest --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shopozor/pricing-service.git"
+  },
+  "author": "Cédric Donner",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/shopozor/pricing-service/issues"
+  },
+  "homepage": "https://github.com/shopozor/pricing-service#readme",
+  "devDependencies": {
+    "jest": "^26.2.2"
+  }
+}

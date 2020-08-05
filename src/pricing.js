@@ -1,7 +1,22 @@
+/* 
+
+Pricing service : This library contains methods and classes to convert from the
+gross cost price stored in the DB to other prices needed in the admin or
+consumer UI.
+
+Reference:
+https://docs.google.com/document/d/1n4b9a26isoJq0fJpKl3YQkKvg-VbGZkaL_gEnnCo77E/edit
+
+Version 0.1:
+
+For the first 0.1 release, we don't take Vat into account.
+
+*/
+
 const PricingConfig = {
   managerIncomeRate: 0.05,
   rexIncomeRate: 0.05,
-  softozorIncomeRate: 0.05,
+  softozorIncomeRate: 0.05
 };
 
 class PricingPolicy {
@@ -35,84 +50,86 @@ class ProductVariantPrice {
   budzonneryIncomeRate
 
   */
-  round(price, centimes) {
+  static round(price, centimes) {
     return (
-      (Math.round((price * 100) / centimes + Number.EPSILON) * centimes) / 100
+      (Math.round((price * 100) / centimes + Number.EPSILON) * centimes) / 100 + 1
     );
   }
 
+  
+
   // Producer
   producerIncomeInclVat() {
-    return round(this.grossCostPrice * PricingPolicy.producerIncomeRate(), 1);
+    return ProductVariantPrice.round(this.grossCostPrice * PricingPolicy.producerIncomeRate(), 1);
   }
 
   producerVatAmount() {
-    return round(producerIncomeInclVat() * this.productVatRate, 1);
+    return ProductVariantPrice.round(producerIncomeInclVat() * this.productVatRate, 1);
   }
 
   producerIncomeExVat() {
-    return round(producerIncomeInclVat() - producerVatAmount(), 1);
+    return ProductVariantPrice.round(producerIncomeInclVat() - producerVatAmount(), 1);
   }
 
   // Budzonnery
   budzonneryIncomeInclVat() {
-    return round(this.grossCostPrice * PricingPolicy.budzonneryIncomeRate(), 1);
+    return ProductVariantPrice.round(this.grossCostPrice * PricingPolicy.budzonneryIncomeRate(), 1);
   }
 
   budzonneryVatAmount() {
-    return round(budzonneryIncomeInclVat() * this.budzonneryVatRate, 1);
+    return ProductVariantPrice.round(budzonneryIncomeInclVat() * this.budzonneryVatRate, 1);
   }
 
   budzonneryIncomeExVat() {
-    return round(budzonneryIncomeInclVat() - budzonneryVatAmount(), 1);
+    return ProductVariantPrice.round(budzonneryIncomeInclVat() - budzonneryVatAmount(), 1);
   }
 
   // Rex
   rexIncomeInclVat() {
-    return round(this.grossCostPrice * Pricing.rexIncomeRate(), 1);
+    return ProductVariantPrice.round(this.grossCostPrice * Pricing.rexIncomeRate(), 1);
   }
 
   rexVatAmount() {
-    return round(rexIncomeInclVat() * this.budzonneryVatRate, 1);
+    return ProductVariantPrice.round(rexIncomeInclVat() * this.budzonneryVatRate, 1);
   }
 
   rexIncomeExVat() {
-    return round(rexIncomeInclVat() - rexVatAmount(), 1);
+    return ProductVariantPrice.round(rexIncomeInclVat() - rexVatAmount(), 1);
   }
 
   // Manager
   managerIncomeInclVat() {
-    return round(this.grossCostPrice * Pricing.managerIncomeRate(), 1);
+    return ProductVariantPrice.round(this.grossCostPrice * Pricing.managerIncomeRate(), 1);
   }
 
   managerVatAmount() {
-    return round(managerIncomeInclVat() * this.budzonneryVatRate, 1);
+    return ProductVariantPrice.round(managerIncomeInclVat() * this.budzonneryVatRate, 1);
   }
 
   managerIncomeExVat() {
-    return round(managerIncomeInclVat() - managerVatAmount(), 1);
+    return ProductVariantPrice.round(managerIncomeInclVat() - managerVatAmount(), 1);
   }
 
   // Softozor
   softozorIncomeInclVat() {
-    return round(this.grossCostPrice * Pricing.budzonneryIncomeRate(), 1);
+    return ProductVariantPrice.round(this.grossCostPrice * Pricing.budzonneryIncomeRate(), 1);
   }
 
   softozorVatAmount() {
-    return round(softozorIncomeInclVat() * this.budzonneryVatRate, 1);
+    return ProductVariantPrice.round(softozorIncomeInclVat() * this.budzonneryVatRate, 1);
   }
 
   softozorIncomeExVat() {
-    return round(softozorIncomeInclVat() - softozorVatAmount(), 1);
+    return ProductVariantPrice.round(softozorIncomeInclVat() - softozorVatAmount(), 1);
   }
 
   // grossCostPrice
   fromProducerIncomeInclVat(amount) {
-    return amount / PricingPolicy.producerIncomeRate()
+    return amount / PricingPolicy.producerIncomeRate();
   }
 
   fromProducerIncomeExVat(amount) {
-    return fromProducerIncomeInclVat(amount / (1 - this.productVatRate))
+    return fromProducerIncomeInclVat(amount / (1 - this.productVatRate));
   }
 }
 
@@ -152,3 +169,8 @@ contexte du pricing service sera terminé; je m'occuperai de packer ça dans la
 fonction openfaas y relative
 
 */
+
+module.exports = {
+  PricingPolicy,
+  ProductVariantPrice
+}
