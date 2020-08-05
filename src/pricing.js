@@ -86,6 +86,34 @@ class ProductVariantPrice {
       1
     );
   }
+
+  // Budzonnery
+  get budzonneryIncomeInclVat() {
+    return new MoneyAmount(
+      this.grossCostPrice * this.pricingPolicy.budzonneryIncomeRate
+    )
+  }
+  
+  // Rex
+  get rexIncomeInclVat() {
+    return new MoneyAmount(
+      this.grossCostPrice * this.pricingPolicy.rexIncomeRate
+    )
+  }
+
+  // Manager
+  get managerIncomeInclVat() {
+    return new MoneyAmount(
+      this.grossCostPrice * this.pricingPolicy.managerIncomeRate
+    )
+  }
+
+  // Softozor
+  get softozorIncomeInclVat() {
+    return new MoneyAmount(
+      this.grossCostPrice * this.pricingPolicy.softozorIncomeRate
+    )
+  }
 }
 
 module.exports = {

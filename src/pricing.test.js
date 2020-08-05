@@ -88,6 +88,38 @@ describe("class PricingPolicy", () => {
 });
 
 describe("class ProductVariantPrice", () => {
+  describe("all other price Views are calculated based upon grossCostPrice", () => {
+    const productPrice = new ProductVariantPrice(100);
+    const testCases = [
+      {
+        conversion: "budzonneryIncomeInclVat",
+        expected: 15,
+      },
+      {
+        conversion: "producerIncomeInclVat",
+        expected: 85,
+      },
+      {
+        conversion: "rexIncomeInclVat",
+        expected: 5,
+      },
+      {
+        conversion: "managerIncomeInclVat",
+        expected: 5,
+      },
+      {
+        conversion: "softozorIncomeInclVat",
+        expected: 5,
+      },
+    ];
+
+    testCases.forEach(({ conversion, expected }) => {
+      test(`For grossCostPrice = 100, ${conversion} returns ${expected}`, () => {
+        expect(productPrice[conversion].amount).toBeCloseTo(expected);
+      });
+    });
+  });
+
   describe("ProducerIncome", () => {
     test("Producer income is computed based on grossCostPrice and pricingPolicy", () => {
       const pricingPolicy = new PricingPolicy();
@@ -100,13 +132,25 @@ describe("class ProductVariantPrice", () => {
     test("grossCostPrice and all other costs are automatically adapted when ProducerIncomeInclVat is set", () => {
       const pricingPolicy = new PricingPolicy();
       const productPrice = new ProductVariantPrice(100, pricingPolicy);
+
+      // before producerIncomeIncVat update, budzonnery earnes 15
+      expect(productPrice.budzonneryIncomeInclVat.amount).toBeCloseTo(15);
+
       productPrice.producerIncomeInclVat = 120;
+
       expect(productPrice.grossCostPrice.amount).toBeCloseTo(
+        // equals 141.176
         productPrice.producerIncomeInclVat / pricingPolicy.producerIncomeRate
       );
 
-      // TODO: add more tests for other priceViews
-
+      // TODO: just for demonstration purposes, this case is implied by all
+      // properties beeing calculated based upon grossCostPrice. After updating
+      // producerIncomeInclVat, budzonnery earnings are automatically updated as
+      // well.
+      expect(productPrice.budzonneryIncomeInclVat.amount).toBeCloseTo(
+        // equals 21.176
+        productPrice.grossCostPrice * pricingPolicy.budzonneryIncomeRate
+      );
     });
   });
 });
