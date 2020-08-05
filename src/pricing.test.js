@@ -120,6 +120,14 @@ describe("class ProductVariantPrice", () => {
     });
   });
 
+  test("grossCostPrice is a property that can be set", () => {
+    const price = new ProductVariantPrice(100.003)
+    expect(price.grossCostPrice.round()).toBeCloseTo(100.00)
+    price.grossCostPrice = 200
+    expect(price.grossCostPrice.round()).toBeCloseTo(200.00)
+    expect(price.budzonneryIncomeInclVat.round()).toBeCloseTo(30)
+  })
+
   describe("ProducerIncome", () => {
     test("Producer income is computed based on grossCostPrice and pricingPolicy", () => {
       const pricingPolicy = new PricingPolicy();
