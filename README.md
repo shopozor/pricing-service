@@ -30,3 +30,25 @@ price.producerIncomeInclVat = 120
 // all prices are automagically recomputed
 price.rexIncomeInclVat.round() // = 120 / 0.85 * 0.05 = 7.06
 ```
+
+### Custom pricing policy
+
+The same can be done with a custom earning shares policy
+
+```js
+const {PricingPolicy, ProductVariantPrice} = require("./pricing")
+
+const customPricingPolicy = new PricingPolicy(
+    managerIncomeRate=0.04,
+    rexIncomeRate=0.06, 
+    softozorIncomeRate=0.07
+)
+console.log(customPricingPolicy.budzonneryIncomeRate) // 0.17
+console.log(customPricingPolicy.rexIncomeRate) // 0.06
+
+const price2 = new ProductVariantPrice(100, customPricingPolicy)
+console.log(price2.budzonneryIncomeInclVat.round()) // 17
+console.log(price2.producerIncomeInclVat.round()) // 83
+console.log(price2.rexIncomeInclVat.round()) // 6
+
+```
