@@ -13,14 +13,39 @@ For the first 0.1 release, we don't take Vat into account.
 
 */
 
-const PricingConfig = {
-  managerIncomeRate: 0.05,
-  rexIncomeRate: 0.05,
-  softozorIncomeRate: 0.05,
-};
+class MoneyAmount {
+  constructor(amount) {
+    this._rawAmount = amount;
+  }
+
+  get amount() {
+    return this._rawAmount;
+  }
+  set amount(amount) {
+    this._rawAmount = amount;
+  }
+  // this is a magic method automatically called by JS whenever the MoneyAmount
+  // needs to be converted to a primitive type (for example to add MoneyAmounts
+  // together or to multiply by a number)
+  valueOf() {
+    return this._rawAmount;
+  }
+
+  round(centimes = 1) {
+    return (
+      (Math.round((this._rawAmount * 100) / centimes + Number.EPSILON) *
+        centimes) /
+      100
+    );
+  }
+}
 
 class PricingPolicy {
-  constructor(managerIncomeRate = 0.05, rexIncomeRate = 0.05, softozorIncomeRate  = 0.05) {
+  constructor(
+    managerIncomeRate = 0.05,
+    rexIncomeRate = 0.05,
+    softozorIncomeRate = 0.05
+  ) {
     this.managerIncomeRate = managerIncomeRate;
     this.rexIncomeRate = rexIncomeRate;
     this.softozorIncomeRate = softozorIncomeRate;
@@ -38,33 +63,21 @@ class PricingPolicy {
 }
 
 class ProductVariantPrice {
-  constructor(grossCostPrice, productVatRate, budzonneryVatRate) {
-    this.grossCostPrice = grossCostPrice;
-    this.productVatRate = productVatRate;
-    this.budzonneryVatRate = budzonneryVatRate;
+  constructor(grossCostPrice, pricingPolicy) {
+    this.pricingPolicy = pricingPolicy || new PricingPolicy();
+    this.grossCostPrice = new MoneyAmount(grossCostPrice);
   }
 
-  /* 
-
-  producerIncomeRate
-  budzonneryIncomeRate
-
-  */
-  static round(price, centimes) {
-    return (
-      (Math.round((price * 100) / centimes + Number.EPSILON) * centimes) / 100
-    );
-  }
-
-  // Producer
+  // Producer prices
   get producerIncomeInclVat() {
-    return ProductVariantPrice.round(
-      this.grossCostPrice * PricingPolicy.producerIncomeRate,
-      1
+    return new MoneyAmount(
+      this.grossCostPrice * this.pricingPolicy.producerIncomeRate
     );
   }
   set producerIncomeInclVat(amount) {
-    return (this.grossCostPrice = amount / PricingPolicy.producerIncomeRate);
+    const newAmount = amount / this.pricingPolicy.producerIncomeRate;
+    this.grossCostPrice.amount = newAmount;
+    return newAmount;
   }
 
   get producerVatAmount() {
@@ -73,147 +86,11 @@ class ProductVariantPrice {
       1
     );
   }
-
-  get producerIncomeExVat() {
-    return ProductVariantPrice.round(
-      producerIncomeInclVat() - producerVatAmount(),
-      1
-    );
-  }
-
-  // Budzonnery
-  get budzonneryIncomeInclVat() {
-    return ProductVariantPrice.round(
-      this.grossCostPrice * PricingPolicy.budzonneryIncomeRate(),
-      1
-    );
-  }
-
-  get budzonneryVatAmount() {
-    return ProductVariantPrice.round(
-      budzonneryIncomeInclVat() * this.budzonneryVatRate,
-      1
-    );
-  }
-
-  get budzonneryIncomeExVat() {
-    return ProductVariantPrice.round(
-      budzonneryIncomeInclVat() - budzonneryVatAmount(),
-      1
-    );
-  }
-
-  // Rex
-  get rexIncomeInclVat() {
-    return ProductVariantPrice.round(
-      this.grossCostPrice * Pricing.rexIncomeRate(),
-      1
-    );
-  }
-
-  get rexVatAmount() {
-    return ProductVariantPrice.round(
-      rexIncomeInclVat() * this.budzonneryVatRate,
-      1
-    );
-  }
-
-  get rexIncomeExVat() {
-    return ProductVariantPrice.round(rexIncomeInclVat() - rexVatAmount(), 1);
-  }
-
-  // Manager
-  get managerIncomeInclVat() {
-    return ProductVariantPrice.round(
-      this.grossCostPrice * Pricing.managerIncomeRate(),
-      1
-    );
-  }
-
-  get managerVatAmount() {
-    return ProductVariantPrice.round(
-      managerIncomeInclVat() * this.budzonneryVatRate,
-      1
-    );
-  }
-
-  get managerIncomeExVat() {
-    return ProductVariantPrice.round(
-      managerIncomeInclVat() - managerVatAmount(),
-      1
-    );
-  }
-
-  // Softozor
-  get softozorIncomeInclVat() {
-    return ProductVariantPrice.round(
-      this.grossCostPrice * Pricing.budzonneryIncomeRate(),
-      1
-    );
-  }
-
-  softozorVatAmount() {
-    return ProductVariantPrice.round(
-      softozorIncomeInclVat() * this.budzonneryVatRate,
-      1
-    );
-  }
-
-  softozorIncomeExVat() {
-    return ProductVariantPrice.round(
-      softozorIncomeInclVat() - softozorVatAmount(),
-      1
-    );
-  }
-
-  // grossCostPrice
-  fromProducerIncomeInclVat(amount) {
-    return amount / PricingPolicy.producerIncomeRate();
-  }
-
-  fromProducerIncomeExVat(amount) {
-    return fromProducerIncomeInclVat(amount / (1 - this.productVatRate));
-  }
 }
-
-/*
-
-tu trouves gross price = gross cost / 0.85 la librairie javascript devrait
-contenir une fonction gross_consumer_price(gross_cost_price, shopozor_margin) ->
-float (en pseudo-code) le gross price est le gross consumer price (tout ça est
-documenté dans l'issue #34) la librairie javascript a besoin d'avoir une méthode
-qui s'appelle gross_consumer_price et qui prend tous les paramètres nécessaires
-en arguments comme indiqué ci-dessus et le corps de cette méthode serait dans ce
-cas return gross_cost_price / (1 - shopozor_margin) à cette méthode tu associes
-un petit test unitaire qui illustre son utilisation avec des données concrètes
-et c'est fini pour cette méthode
-
-tu fais ça pour toutes les données demandées par florian et qui sont résumées
-ici: https://gitlab.hidora.com/softozor/shopozor/services/-/issues/379
-
-GitLabGitLaby Create pricing service (#379) · Issues · Softozor / shopozor /
-services
-
-The pricing service will be used both on the frontend- and on the backend-side.
-It needs to make all sorts of prices / costs available to anything needing them.
-Because...
-
-et au niveau des arrondis ... ça se passe comment ?
-
-ensuite, dans une deuxième phase, nous gérons les arrondis, comme indiqué ici:
-https://gitlab.hidora.com/softozor/shopozor/services/-/issues/30 GitLabGitLab
-Make sure the rounding differences in our prices are correctly taken into
-account for the VAT (#30) · Issues · Softozor / shopozor / services In #34, we
-talk about taking VAT into account. In that context, we know that rounding
-errors on the product prices are sometimes a problem for accountants. We need
-to... à chaque méthode que tu auras écrite, tu écriras les tests qui valident
-les arrondis et c'est fini pour la logique et je pense que ton travail dans le
-contexte du pricing service sera terminé; je m'occuperai de packer ça dans la
-fonction openfaas y relative
-
-*/
 
 module.exports = {
   PricingPolicy,
   ProductVariantPrice,
+  MoneyAmount,
 };
+
