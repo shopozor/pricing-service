@@ -12,9 +12,9 @@ const {PricingPolicy, ProductVariantPrice} = require("./pricing")
 const price = new ProductVariantPrice(12.532)
 price.round(centimes=1) // 12.53
 price.round(centimes=5) // 12.55
-price.producerIncomeInclVat // 12.532 * 0.85
-price.budzonneryIncomeInclVat // 12.532 * 0.15
-price.rexIncomeInclVat // 12.532 * 0.05
+price.producerIncomeInclVat.round() // 12.532 * 0.85
+price.budzonneryIncomeInclVat.round() // 12.532 * 0.15
+price.rexIncomeInclVat.round() // 12.532 * 0.05
 ```
 
 The properties are also writable an will affect the property `grossCostPrice`
