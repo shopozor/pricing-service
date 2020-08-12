@@ -1,4 +1,4 @@
-const {PricingPolicy, ProductVariantPrice} = require("../src/pricing")
+const {PricingPolicy, ProductVariantPrice, addPrices} = require("../src/pricing")
 
 const price = new ProductVariantPrice(12.532)
 console.log(price.grossCostPrice.round(centimes=1)) // 12.53
@@ -30,3 +30,17 @@ const price2 = new ProductVariantPrice(100, customPricingPolicy)
 console.log(price2.budzonneryIncomeInclVat.round()) // 17
 console.log(price2.producerIncomeInclVat.round()) // 83
 console.log(price2.rexIncomeInclVat.round()) // 6
+
+
+// adding products together and getting the price
+const prices = [1.23, 2.34, 3.45]
+let products = prices.map(p => ({someproperty: 'some value', grossCostPrice: new ProductVariantPrice(p)}))
+console.log(products)
+let total = addPrices(products)
+console.log(total.round(1))
+
+products = prices.map(p => ({someproperty: 'some value', funkyProperty: new ProductVariantPrice(p)}))
+console.log(products)
+total = addPrices(products, (p) => p.funkyProperty)
+console.log(total.round(1))
+

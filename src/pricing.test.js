@@ -3,6 +3,7 @@ const {
   ProductVariantPrice,
   MoneyAmount,
 } = require("./pricing");
+const { PRIORITY_ABOVE_NORMAL } = require("constants");
 // const { decorator } = require("babel-types");
 
 describe("class MoneyAmount", () => {
@@ -161,4 +162,19 @@ describe("class ProductVariantPrice", () => {
       );
     });
   });
+
+  describe("ProductVariants are converted to grossCostPrice implicitely when needed", () => {
+    
+    test("ProductVariants can be simply added together", () => {
+      const p1 = new ProductVariantPrice(12.23)
+      const p2 = new ProductVariantPrice(5.79)
+  
+      const result = p1 + p2
+      const expected = p1.grossCostPrice.amount + p2.grossCostPrice.amount
+      
+      expect(result).toBe(expected)
+    })
+  })
+
+
 });

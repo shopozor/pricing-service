@@ -121,11 +121,27 @@ class ProductVariantPrice {
       this._grossCostPrice * this.pricingPolicy.softozorIncomeRate
     )
   }
+
+  // Utility methods
+  valueOf() {
+    return this._grossCostPrice.amount
+  }
+}
+
+const addPrices = (products, mapProductToPrice) => {
+  mapProductToPrice = mapProductToPrice || ((product) => product.grossCostPrice)
+  return new MoneyAmount(products.map(mapProductToPrice).reduce((a, b) => a + b, 0))
+}
+
+const addPricesToDisplayFormat = (products, mapProductToPrice) => {
+  return addPrices(products, mapProductToPrice).round(5)
 }
 
 module.exports = {
   PricingPolicy,
   ProductVariantPrice,
   MoneyAmount,
+  addPrices,
+  addPricesToDisplayFormat
 };
 
