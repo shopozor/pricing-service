@@ -44,3 +44,4 @@ console.log(products)
 total = addPrices(products, (p) => p.funkyProperty)
 console.log(total.round(1))
 
+
