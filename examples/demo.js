@@ -34,14 +34,34 @@ console.log(price2.rexIncomeInclVat.round()) // 6
 
 // adding products together and getting the price
 const prices = [1.23, 2.34, 3.45]
-let products = prices.map(p => ({someproperty: 'some value', grossCostPrice: new ProductVariantPrice(p)}))
+let products, total
+
+// this builds a list of fake "ProductVariant" objects
+products = prices.map((p) => ({
+  someproperty: "some value",
+  grossCostPrice: new ProductVariantPrice(p),
+}))
+// when adding up the product variants, we get the total price as a MoneyAmount
+// object
 console.log(products)
-let total = addPrices(products)
+total = addPrices(products)
 console.log(total.round(1))
 
-products = prices.map(p => ({someproperty: 'some value', funkyProperty: new ProductVariantPrice(p)}))
+// instead of getting the total price as a MoneyAmount, we can also get it as a
+// 5 centimes rounded float
+let roundedTotal = addPricesToDisplayFormat(products)
+console.log(roundedTotal)
+
+
+// The same can be done with a list of objects where the grossCostPrice is
+// stored in a funky strange property
+products = prices.map((p) => ({
+  someproperty: "some value",
+  funkyProperty: new ProductVariantPrice(p),
+}));
 console.log(products)
-total = addPrices(products, (p) => p.funkyProperty)
+const mapObjectToPrice = (p) => p.funkyProperty
+total = addPrices(products, mapObjectToPrice)
 console.log(total.round(1))
 
 

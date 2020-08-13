@@ -31,12 +31,16 @@ class MoneyAmount {
     return this._rawAmount;
   }
 
-  round(centimes = 1) {
+  round(centimes=1) {
     return (
       (Math.round((this._rawAmount * 100) / centimes + Number.EPSILON) *
         centimes) /
       100
     );
+  }
+
+  display(centimes=5) {
+    return parseFloat(this.round(centimes)).toFixed(2)
   }
 }
 
@@ -130,11 +134,11 @@ class ProductVariantPrice {
 
 const addPrices = (products, mapProductToPrice) => {
   mapProductToPrice = mapProductToPrice || ((product) => product.grossCostPrice)
-  return new MoneyAmount(products.map(mapProductToPrice).reduce((a, b) => a + b, 0))
+  return new MoneyAmount(products.map(mapProductToPrice).reduce((a, b) => (100 * a + 100 * b) / 100, 0))
 }
 
 const addPricesToDisplayFormat = (products, mapProductToPrice) => {
-  return addPrices(products, mapProductToPrice).round(5)
+  return addPrices(products, mapProductToPrice).display()
 }
 
 module.exports = {

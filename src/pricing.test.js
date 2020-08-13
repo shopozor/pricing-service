@@ -2,6 +2,8 @@ const {
   PricingPolicy,
   ProductVariantPrice,
   MoneyAmount,
+  addPrices,
+  addPricesToDisplayFormat,
 } = require("./pricing");
 const { PRIORITY_ABOVE_NORMAL } = require("constants");
 // const { decorator } = require("babel-types");
@@ -37,6 +39,41 @@ describe("class MoneyAmount", () => {
       ];
       testCases.forEach(({ centimes, expected }) => {
         const result = amount.round(centimes);
+        expect(result).toBe(expected);
+      });
+    });
+  });
+  describe("display() method rounds and returns a string with 2 decimals fixed precision", () => {
+    test("display 1.234 defaults to 1.25", () => {
+      const amount = new MoneyAmount(1.234);
+      const result = amount.display();
+      expect(result).toBe("1.25");
+    });
+
+    test("display 1.234 to 1, 5, 10 and 100 centimes", () => {
+      const amount = new MoneyAmount(1.234);
+      const testCases = [
+        { centimes: 1, expected: "1.23" },
+        { centimes: 5, expected: "1.25" },
+        { centimes: 10, expected: "1.20" },
+        { centimes: 100, expected: "1.00" },
+      ];
+      testCases.forEach(({ centimes, expected }) => {
+        const result = amount.display(centimes);
+        expect(result).toBe(expected);
+      });
+    });
+
+    test("round 1.277 to 1, 5, 10 and 100 centimes", () => {
+      const amount = new MoneyAmount(1.277);
+      const testCases = [
+        { centimes: 1, expected: "1.28" },
+        { centimes: 5, expected: "1.30" },
+        { centimes: 10, expected: "1.30" },
+        { centimes: 100, expected: "1.00" },
+      ];
+      testCases.forEach(({ centimes, expected }) => {
+        const result = amount.display(centimes);
         expect(result).toBe(expected);
       });
     });
@@ -122,12 +159,12 @@ describe("class ProductVariantPrice", () => {
   });
 
   test("grossCostPrice is a property that can be set", () => {
-    const price = new ProductVariantPrice(100.003)
-    expect(price.grossCostPrice.round()).toBeCloseTo(100.00)
-    price.grossCostPrice = 200
-    expect(price.grossCostPrice.round()).toBeCloseTo(200.00)
-    expect(price.budzonneryIncomeInclVat.round()).toBeCloseTo(30)
-  })
+    const price = new ProductVariantPrice(100.003);
+    expect(price.grossCostPrice.round()).toBeCloseTo(100.0);
+    price.grossCostPrice = 200;
+    expect(price.grossCostPrice.round()).toBeCloseTo(200.0);
+    expect(price.budzonneryIncomeInclVat.round()).toBeCloseTo(30);
+  });
 
   describe("ProducerIncome", () => {
     test("Producer income is computed based on grossCostPrice and pricingPolicy", () => {
@@ -164,17 +201,89 @@ describe("class ProductVariantPrice", () => {
   });
 
   describe("ProductVariants are converted to grossCostPrice implicitely when needed", () => {
-    
     test("ProductVariants can be simply added together", () => {
-      const p1 = new ProductVariantPrice(12.23)
-      const p2 = new ProductVariantPrice(5.79)
+      const p1 = new ProductVariantPrice(12.23);
+      const p2 = new ProductVariantPrice(5.79);
+
+      const result = p1 + p2;
+      const expected = p1.grossCostPrice.amount + p2.grossCostPrice.amount;
+
+      expect(result).toBe(expected);
+    });
+  });
+});
+
+describe("addPrices adds ProductVariants together with exact computation up to 1 centime", () => {
+  test("addPrices adds product variant gross price correctly with standard property", () => {
+    const prices = [1.23, 2.34, 3.45];
+
+    // this builds a list of fake "ProductVariant" objects
+    const products = prices.map((p) => ({
+      someproperty: "some value",
+      grossCostPrice: new ProductVariantPrice(p),
+    }));
+
+    const result = addPrices(products);
+    const expected = (123 + 234 + 345) / 100;
+
+    expect(result).toBeInstanceOf(MoneyAmount);
+    expect(result.amount).toBe(expected);
+  });
+
+  test("addPrices adds product variant gross price correctly with custom property", () => {
+    const prices = [1.23, 2.34, 3.45];
+
+    // this builds a list of fake "ProductVariant" objects
+    const products = prices.map((p) => ({
+      someproperty: "some value",
+      funkyProperty: new ProductVariantPrice(p),
+    }));
+
+    const mapObjectToPrice = (product) => product.funkyProperty;
+    const result = addPrices(products, mapObjectToPrice);
+    const expected = (123 + 234 + 345) / 100;
+
+    expect(result).toBeInstanceOf(MoneyAmount);
+    expect(result.amount).toBe(expected);
+  });
+});
+
+describe("addPricesToDisplayFormat adds ProductVariants together with exact computation up to 1 centime and rounds to 5 centimes with fixed number of decimals", () => {
+  test("addPrices adds product variant gross price correctly with standard property", () => {
+    const prices = [1.23, 2.34, 3.45];
+
+    // this builds a list of fake "ProductVariant" objects
+    const products = prices.map((p) => ({
+      someproperty: "some value",
+      grossCostPrice: new ProductVariantPrice(p),
+    }));
+
+    const result = addPricesToDisplayFormat(products);
+    // 7.02 => 7.00
+    const expected = "7.00";
+    
+    expect(typeof result).toBe("string");
+    expect(result.split(".")[1].length).toBe(2);
+    expect(result).toBe(expected);
+  });
   
-      const result = p1 + p2
-      const expected = p1.grossCostPrice.amount + p2.grossCostPrice.amount
-      
-      expect(result).toBe(expected)
-    })
-  })
+  test("addPrices adds product variant gross price correctly with custom property", () => {
+    const prices = [1.23, 2.34, 3.45];
+    
+    // this builds a list of fake "ProductVariant" objects with price as a funky
+    // property
+    const products = prices.map((p) => ({
+      someproperty: "some value",
+      funkyProperty: new ProductVariantPrice(p),
+    }));
+    
+    const mapObjectToPrice = (product) => product.funkyProperty;
+    const result = addPricesToDisplayFormat(products, mapObjectToPrice);
+    // 7.02 => 7.00
+    const expected = "7.00";
 
-
+    expect(typeof result).toBe("string");
+    expect(result.split(".")[1].length).toBe(2);
+    expect(result).toBe(expected);
+  });
 });
