@@ -7,6 +7,16 @@ console.log(price.round(5)) // 1.02 => 1
 // and converted to display format string
 console.log(price.display(5)) // 1.02 => 1 => '1.00'
 
+// Money amounts can be added together
+const p1 = new MoneyAmount(1.02)
+const p2 = new MoneyAmount(2.07)
+console.log(p1 + p2) // 3.09
+
+// to be able to further work with the sum as a MoneyAmount, use the MoneyAmount constructor
+let total = new MoneyAmount(p1 + p2)
+console.log(total.display()) // 3.09 => ... => '3.10'
+
+
 
 price = new ProductVariantPrice(12.532)
 console.log(price.grossCostPrice.round(centimes=1)) // 12.53
@@ -49,7 +59,7 @@ console.log(price2.rexIncomeInclVat.round()) // 6
 
 // adding products together and getting the price
 const prices = [1.23, 2.34, 3.45]
-let products, total
+let products
 
 // this builds a list of fake "ProductVariant" objects
 products = prices.map((p) => ({

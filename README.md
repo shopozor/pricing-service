@@ -2,6 +2,31 @@
 
 ## Usage
 
+The whole thing is based on the `MoneyAmount` class that is used to represent
+financial amounts.
+
+```js
+const { MoneyAmount } = require("./pricing")
+
+// Financial amounts are represented by the class MoneyAmount
+let price = new MoneyAmount(1.02)
+// Money amounts can be rounded to n centimes (here 5)
+console.log(price.round(5)) // 1.02 => 1
+// and converted to display format string
+console.log(price.display(5)) // 1.02 => 1 => '1.00'
+
+// Money amounts can be added together
+const p1 = new MoneyAmount(1.02)
+const p2 = new MoneyAmount(2.07)
+console.log(p1 + p2) // 3.09
+
+// to be able to further work with the sum as a MoneyAmount, use the MoneyAmount constructor
+const total = new MoneyAmount(p1 + p2)
+console.log(total.display()) // 3.09 => ... => '3.10'
+```
+
+## `ProductVariantPrice` class
+
 To hande product prices, instantiate the `ProductVariantPrice` class passing the
 `grossCostPrice` as an argument. All other conversions can then be accessed
 automatically through properties that are automatically updated accordingly.
