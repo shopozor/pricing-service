@@ -1,6 +1,14 @@
-const {PricingPolicy, ProductVariantPrice, addPrices} = require("../src/pricing")
+const {MoneyAmount, PricingPolicy, ProductVariantPrice, addPrices, addPricesToDisplayFormat} = require("../src/pricing")
 
-const price = new ProductVariantPrice(12.532)
+// Financial amounts are represented by the class MoneyAmount
+let price = new MoneyAmount(1.02)
+// Money amounts can be rounded to n centimes (here 5)
+console.log(price.round(5)) // 1.02 => 1
+// and converted to display format string
+console.log(price.display(5)) // 1.02 => 1 => '1.00'
+
+
+price = new ProductVariantPrice(12.532)
 console.log(price.grossCostPrice.round(centimes=1)) // 12.53
 console.log(price.grossCostPrice.round(centimes=5)) // 12.55
 // by default, .round() rounds to 1 centime
@@ -16,6 +24,13 @@ console.log(price.rexIncomeInclVat.round())  // 5.00
 // of all other is implied)
 price.producerIncomeInclVat = 120
 console.log(price.rexIncomeInclVat.round()) // = 120 / 0.85 * 0.05 = 7.06
+
+// prices can be converted to display format string
+console.log(price.rexIncomeInclVat.display()) // = 120 / 0.85 * 0.05 = 7.06 => 7.05
+
+
+
+
 
 // changing the pricing policy
 const customPricingPolicy = new PricingPolicy(
